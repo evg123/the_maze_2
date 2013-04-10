@@ -24,6 +24,7 @@ public:
 	glm::mat4 proj_matrix_;
     Player player_;
 	std::vector<WallSegment> walls_;
+	glm::vec3 light_pos_ws_;
     
 private:
 	GLuint vbo_;
@@ -39,6 +40,7 @@ private:
 	GLint view_uni_;
 	GLint vert_model_uni_;
     GLint norm_model_uni_;
+	GLint light_pos_cs_uni_;
 	
 public:
 	void render();

@@ -62,10 +62,10 @@ void TheMaze2::initShaders() {
 
 void TheMaze2::initAttributes() {
     
-    position_attr_ = glGetAttribLocation(shader_prog_, "position");
+    position_attr_ = glGetAttribLocation(shader_prog_, "position_ms");
     glVertexAttribPointer(position_attr_, 3, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(0*sizeof(GLfloat)));
     
-    normal_attr_ = glGetAttribLocation(shader_prog_, "normal");
+    normal_attr_ = glGetAttribLocation(shader_prog_, "normal_ms");
     glVertexAttribPointer(normal_attr_, 3, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
     
     color_attr_ = glGetAttribLocation(shader_prog_, "in_color");
@@ -75,6 +75,7 @@ void TheMaze2::initAttributes() {
     view_uni_ = glGetUniformLocation(shader_prog_, "view");
     vert_model_uni_ = glGetUniformLocation(shader_prog_, "vert_model");
     norm_model_uni_ = glGetUniformLocation(shader_prog_, "norm_model");
+    light_pos_cs_uni_ = glGetUniformLocation(shader_prog_, "light_pos_cs");
     
     proj_matrix_ = glm::perspective(35.0f, 1920.0f / 1080.0f, 0.1f, 100.0f);
     glUniformMatrix4fv(proj_uni_, 1, GL_FALSE, glm::value_ptr(proj_matrix_));
@@ -116,10 +117,15 @@ void TheMaze2::render() {
     //player_.model_matrix_ = glm::inverse(player_.model_matrix_);
     glUniformMatrix4fv(view_uni_, 1, GL_FALSE, glm::value_ptr(player_.model_matrix_));
     
+    // convert light position to camera space
+    glm::vec3 light_pos_cs = player_.model_matrix_ * glm::vec4(light_pos_ws_, 1.0);
+    glUniformVector3fv(light_pos_cs_uni_, 1, GL_FALSE, glm::value_ptr(light_pos_cs));
+    
     for (WallSegment ws : walls_) {
         ws.updateModelMatrix();
         glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(ws.model_matrix_));
         glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(ws.model_matrix_));
+        
         glDrawElements(GL_TRIANGLES, ws.ebo_count_, GL_UNSIGNED_SHORT, ws.ebo_pos_);
     }
     
@@ -231,6 +237,8 @@ int main() {
     maze.initVbo();
     maze.initShaders();
     maze.initAttributes();
+    
+    maze.light_pos_ws_ = glm::vec3(0.0, 0.0, 0.0);
     
     WallSegment ws;
     ws.yPos_ = -20200;
