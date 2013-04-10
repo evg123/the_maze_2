@@ -32,11 +32,13 @@ private:
 	GLuint shader_prog_;
     
 	GLint position_attr_;
+    GLint normal_attr_;
 	GLint text_coord_attr_;
     GLint color_attr_;
 	GLint proj_uni_;
 	GLint view_uni_;
-	GLint model_uni_;
+	GLint vert_model_uni_;
+    GLint norm_model_uni_;
 	
 public:
 	void render();

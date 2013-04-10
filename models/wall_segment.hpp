@@ -4,9 +4,8 @@
 #include "../common.hpp"
 #include "../model.hpp"
 
-#define WALL_SEGMENT_VERT_COUNT 128
+#define WALL_SEGMENT_VERT_COUNT 176
 #define WALL_SEGMENT_ELEM_COUNT 24
-//#define WALL_SEGMENT_ELEM_COUNT 3
 
 class WallSegment : public Model {
 

@@ -63,17 +63,22 @@ void TheMaze2::initShaders() {
 void TheMaze2::initAttributes() {
     
     position_attr_ = glGetAttribLocation(shader_prog_, "position");
-    glVertexAttribPointer(position_attr_, 3, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), (void*)(0*sizeof(GLfloat)));
+    glVertexAttribPointer(position_attr_, 3, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(0*sizeof(GLfloat)));
+    
+    normal_attr_ = glGetAttribLocation(shader_prog_, "normal");
+    glVertexAttribPointer(normal_attr_, 3, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+    
+    color_attr_ = glGetAttribLocation(shader_prog_, "in_color");
+    glVertexAttribPointer(color_attr_, 3, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(8*sizeof(GLfloat)));
     
     proj_uni_ = glGetUniformLocation(shader_prog_, "proj");
     view_uni_ = glGetUniformLocation(shader_prog_, "view");
-    model_uni_ = glGetUniformLocation(shader_prog_, "model");
+    vert_model_uni_ = glGetUniformLocation(shader_prog_, "vert_model");
+    norm_model_uni_ = glGetUniformLocation(shader_prog_, "norm_model");
     
     proj_matrix_ = glm::perspective(35.0f, 1920.0f / 1080.0f, 0.1f, 100.0f);
     glUniformMatrix4fv(proj_uni_, 1, GL_FALSE, glm::value_ptr(proj_matrix_));
     
-    color_attr_ = glGetAttribLocation(shader_prog_, "in_color");
-    glVertexAttribPointer(color_attr_, 3, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
 }
 
 GLuint TheMaze2::shaderFromFile(std::string filename, GLenum type) {
@@ -104,6 +109,7 @@ GLuint TheMaze2::shaderFromFile(std::string filename, GLenum type) {
 void TheMaze2::render() {
     
     glEnableVertexAttribArray(position_attr_);
+    glEnableVertexAttribArray(normal_attr_);
     glEnableVertexAttribArray(color_attr_);
     
     player_.updateModelMatrix();
@@ -112,11 +118,13 @@ void TheMaze2::render() {
     
     for (WallSegment ws : walls_) {
         ws.updateModelMatrix();
-        glUniformMatrix4fv(model_uni_, 1, GL_FALSE, glm::value_ptr(ws.model_matrix_));
+        glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(ws.model_matrix_));
+        glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(ws.model_matrix_));
         glDrawElements(GL_TRIANGLES, ws.ebo_count_, GL_UNSIGNED_SHORT, ws.ebo_pos_);
     }
     
     glDisableVertexAttribArray(position_attr_);
+    glDisableVertexAttribArray(normal_attr_);
     glDisableVertexAttribArray(color_attr_);
 }
 
@@ -254,7 +262,7 @@ int main() {
         
         int error = glGetError();
         if (error != 0) {
-            std::cout << "GL Error " << error << std::endl;
+            //std::cout << "GL Error " << error << std::endl;
             //return -1;
         }
     }
