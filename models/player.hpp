@@ -2,7 +2,7 @@
 #define PLAYER_HPP
 
 #include "../common.hpp"
-#include "../model.hpp"
+#include "model.hpp"
 
 class Player : public Model {
 	

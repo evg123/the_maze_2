@@ -35,6 +35,14 @@ void Model::move(double delta) {
     } else if (move_dir_ == DIR_REVERSE) {
         xPos_ -= delta * cos(facing_) * speed_;
         yPos_ -= delta * sin(facing_) * speed_;
+    } else if (move_dir_ == DIR_LEFT) {
+        float strafe_face = facing_ + M_PI/2;
+        xPos_ -= delta * cos(strafe_face) * speed_;
+        yPos_ -= delta * sin(strafe_face) * speed_;
+    } else if (move_dir_ == DIR_RIGHT) {
+        float strafe_face = facing_ - M_PI/2;
+        xPos_ -= delta * cos(strafe_face) * speed_;
+        yPos_ -= delta * sin(strafe_face) * speed_;
     }
     
     if (rot_dir_ == DIR_LEFT) {

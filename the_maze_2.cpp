@@ -3,7 +3,7 @@
 void TheMaze2::initGl() {
     
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 }
 
 void TheMaze2::initVao() {
@@ -20,12 +20,15 @@ void TheMaze2::initVbo() {
     
     // total vbo size is size of all models added together
     int vbo_size = sizeof(WallSegment::verts_);
+    vbo_size += sizeof(Surface::verts_);
     
-    glBufferData(GL_ARRAY_BUFFER, vbo_size, WallSegment::verts_, GL_STATIC_DRAW);
+    // allocate space for verticies
+    glBufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STATIC_DRAW);
     
     // load each model's vertex data into the vbo
     // WallSegment
     glBufferSubData(GL_ARRAY_BUFFER, WALL_SEGMENT_VBO_POS, sizeof(WallSegment::verts_), WallSegment::verts_);
+    glBufferSubData(GL_ARRAY_BUFFER, SURFACE_VBO_POS, sizeof(Surface::verts_), Surface::verts_);
     
     // init element array buffer
     glGenBuffers(1, &ebo_);
@@ -33,12 +36,15 @@ void TheMaze2::initVbo() {
     
     // total ebo size is size of all models added together
     int ebo_size = sizeof(WallSegment::elems_);
+    ebo_size += sizeof(Surface::elems_);
     
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_size, WallSegment::elems_, GL_STATIC_DRAW);
+    // allocate space for elements
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_size, NULL, GL_STATIC_DRAW);
     
     // load each model's element data into the ebo
     // WallSegment
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, WALL_SEGMENT_EBO_POS, sizeof(WallSegment::elems_), WallSegment::elems_);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, SURFACE_EBO_POS, sizeof(Surface::elems_), Surface::elems_);
     
 }
 
@@ -101,6 +107,10 @@ GLuint TheMaze2::shaderFromFile(std::string filename, GLenum type) {
         glGetShaderInfoLog(shader, max_len, &max_len, &info_log[0]);
         
         std::cout << "Error compiling shader " << filename << std::endl;
+        for (GLchar c : info_log) {
+            std::cout << c;
+        }
+        std::cout << std::endl;
         return 0;
     }
     
@@ -118,15 +128,23 @@ void TheMaze2::render() {
     glUniformMatrix4fv(view_uni_, 1, GL_FALSE, glm::value_ptr(player_.model_matrix_));
     
     // convert light position to camera space
-    glm::vec3 light_pos_cs = player_.model_matrix_ * glm::vec4(light_pos_ws_, 1.0);
-    glUniformVector3fv(light_pos_cs_uni_, 1, GL_FALSE, glm::value_ptr(light_pos_cs));
+    glm::vec3 light_pos_cs = (glm::vec3)(player_.model_matrix_ * glm::vec4(light_pos_ws_, 1.0));
+    glUniform3fv(light_pos_cs_uni_, 1, glm::value_ptr(light_pos_cs));
     
-    for (WallSegment ws : walls_) {
-        ws.updateModelMatrix();
-        glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(ws.model_matrix_));
-        glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(ws.model_matrix_));
+    for (WallSegment *ws : walls_) {
+        ws->updateModelMatrix();
+        glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(ws->model_matrix_));
+        glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(ws->model_matrix_));
         
-        glDrawElements(GL_TRIANGLES, ws.ebo_count_, GL_UNSIGNED_SHORT, ws.ebo_pos_);
+        glDrawElements(GL_TRIANGLES, ws->ebo_count_, GL_UNSIGNED_SHORT, ws->ebo_pos_);
+    }
+    
+    for (Surface *sf : surfaces_) {
+        sf->updateModelMatrix();
+        glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
+        glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
+        
+        glDrawElements(GL_TRIANGLES, sf->ebo_count_, GL_UNSIGNED_SHORT, sf->ebo_pos_);
     }
     
     glDisableVertexAttribArray(position_attr_);
@@ -137,77 +155,24 @@ void TheMaze2::render() {
 void TheMaze2::handleMovement(double delta) {
     
     player_.move(delta);
-    walls_[0].move(delta);
+    walls_[0]->move(delta);
     
 }
 
-void TheMaze2::handleKeyInput(int key, int action) {
+void TheMaze2::addWall(int xPos, int yPos) {
     
-    TheMaze2 &maze = TheMaze2::getInstance();
+    WallSegment *ws = new WallSegment();
+    ws->xPos_ = xPos;
+    ws->yPos_ = yPos;
+    walls_.push_back(ws);
+}
+
+void TheMaze2::addSurface(int xPos, int yPos) {
     
-    switch (key) {
-        
-        case 87: // W
-            if (action == GLFW_PRESS) {
-                maze.player_.move_dir_ = DIR_FORWARD;
-            } else if (action == GLFW_RELEASE) {
-                maze.player_.move_dir_ = DIR_NONE;
-            }
-            break;
-        case 83: // S
-            if (action == GLFW_PRESS) {
-                maze.player_.move_dir_ = DIR_REVERSE;
-            } else if (action == GLFW_RELEASE) {
-                maze.player_.move_dir_ = DIR_NONE;
-            }
-            break;
-        case 65: // A
-            if (action == GLFW_PRESS) {
-                maze.player_.rot_dir_ = DIR_LEFT;
-            } else if (action == GLFW_RELEASE) {
-                maze.player_.rot_dir_ = DIR_NONE;
-            }
-            break;
-        case 68: // D
-            if (action == GLFW_PRESS) {
-                maze.player_.rot_dir_ = DIR_RIGHT;
-            } else if (action == GLFW_RELEASE) {
-                maze.player_.rot_dir_ = DIR_NONE;
-            }
-            break;
-        /*
-        case 87: // W
-            if (action == GLFW_PRESS) {
-                maze.walls_[0].move_dir_ = DIR_FORWARD;
-            } else if (action == GLFW_RELEASE) {
-                maze.walls_[0].move_dir_ = DIR_NONE;
-            }
-            break;
-        case 83: // S
-            if (action == GLFW_PRESS) {
-                maze.walls_[0].move_dir_ = DIR_REVERSE;
-            } else if (action == GLFW_RELEASE) {
-                maze.walls_[0].move_dir_ = DIR_NONE;
-            }
-            break;
-        case 65: // A
-            if (action == GLFW_PRESS) {
-                maze.walls_[0].rot_dir_ = DIR_LEFT;
-            } else if (action == GLFW_RELEASE) {
-                maze.walls_[0].rot_dir_ = DIR_NONE;
-            }
-            break;
-        case 68: // D
-            if (action == GLFW_PRESS) {
-                maze.walls_[0].rot_dir_ = DIR_RIGHT;
-            } else if (action == GLFW_RELEASE) {
-                maze.walls_[0].rot_dir_ = DIR_NONE;
-            }
-            break;
-        */
-        default:
-            break;
-    }
+    Surface *sf = new Surface();
+    sf->xPos_ = xPos;
+    sf->yPos_ = yPos;
+    surfaces_.push_back(sf);
 }
 
 int main() {
@@ -238,17 +203,18 @@ int main() {
     maze.initShaders();
     maze.initAttributes();
     
-    maze.light_pos_ws_ = glm::vec3(0.0, 0.0, 0.0);
+    maze.light_pos_ws_ = glm::vec3(0.0, 4.0, -6.0);
     
-    WallSegment ws;
-    ws.yPos_ = -20200;
-    ws.xPos_ = 2200;
+    maze.addWall(0, 0);
+    maze.addWall(0, 1000);
+    maze.addWall(0, 2000);
+    maze.addWall(2000, -20000);
+    
+    maze.addSurface(-1000, -1000);
     
     //maze.player_.xPos_ = 20000;
     //maze.player_.yPos_ = 20000;
     maze.player_.facing_ = (3.0f/2.0f)*M_PI;
-    
-    maze.walls_.push_back(ws);
     
     glfwSetKeyCallback(TheMaze2::handleKeyInput);
     double prev_time = glfwGetTime();
@@ -270,8 +236,8 @@ int main() {
         
         int error = glGetError();
         if (error != 0) {
-            //std::cout << "GL Error " << error << std::endl;
-            //return -1;
+            std::cout << "GL Error " << error << std::endl;
+            return -1;
         }
     }
     
@@ -279,6 +245,88 @@ int main() {
     return 0;
 }
 
+void TheMaze2::handleKeyInput(int key, int action) {
+    
+    TheMaze2 &maze = TheMaze2::getInstance();
+    
+    switch (key) {
+        // move the camera/player
+        case 87: // W
+            if (action == GLFW_PRESS) {
+                maze.player_.move_dir_ = DIR_FORWARD;
+            } else if (action == GLFW_RELEASE) {
+                maze.player_.move_dir_ = DIR_NONE;
+            }
+            break;
+        case 83: // S
+            if (action == GLFW_PRESS) {
+                maze.player_.move_dir_ = DIR_REVERSE;
+            } else if (action == GLFW_RELEASE) {
+                maze.player_.move_dir_ = DIR_NONE;
+            }
+            break;
+        case 65: // A
+            if (action == GLFW_PRESS) {
+                maze.player_.move_dir_ = DIR_LEFT;
+            } else if (action == GLFW_RELEASE) {
+                maze.player_.move_dir_ = DIR_NONE;
+            }
+            break;
+        case 68: // D
+            if (action == GLFW_PRESS) {
+                maze.player_.move_dir_ = DIR_RIGHT;
+            } else if (action == GLFW_RELEASE) {
+                maze.player_.move_dir_ = DIR_NONE;
+            }
+            break;
+        case 81: // Q
+            if (action == GLFW_PRESS) {
+                maze.player_.rot_dir_ = DIR_LEFT;
+            } else if (action == GLFW_RELEASE) {
+                maze.player_.rot_dir_ = DIR_NONE;
+            }
+            break;
+        case 69: // E
+            if (action == GLFW_PRESS) {
+                maze.player_.rot_dir_ = DIR_RIGHT;
+            } else if (action == GLFW_RELEASE) {
+                maze.player_.rot_dir_ = DIR_NONE;
+            }
+            break;
+        // move the wall
+        case 73: // I
+            if (action == GLFW_PRESS) {
+                maze.walls_[0]->move_dir_ = DIR_FORWARD;
+            } else if (action == GLFW_RELEASE) {
+                maze.walls_[0]->move_dir_ = DIR_NONE;
+            }
+            break;
+        case 75: // K
+            if (action == GLFW_PRESS) {
+                maze.walls_[0]->move_dir_ = DIR_REVERSE;
+            } else if (action == GLFW_RELEASE) {
+                maze.walls_[0]->move_dir_ = DIR_NONE;
+            }
+            break;
+        case 74: // J
+            if (action == GLFW_PRESS) {
+                maze.walls_[0]->rot_dir_ = DIR_LEFT;
+            } else if (action == GLFW_RELEASE) {
+                maze.walls_[0]->rot_dir_ = DIR_NONE;
+            }
+            break;
+        case 76: // L
+            if (action == GLFW_PRESS) {
+                maze.walls_[0]->rot_dir_ = DIR_RIGHT;
+            } else if (action == GLFW_RELEASE) {
+                maze.walls_[0]->rot_dir_ = DIR_NONE;
+            }
+            break;
+        
+        default:
+            break;
+    }
+}
 
 
 

@@ -9,21 +9,19 @@
 #include <vector>
 
 #include "common.hpp"
-#include "model.hpp"
+#include "models/model.hpp"
 #include "models/player.hpp"
 #include "models/wall_segment.hpp"
+#include "models/surface.hpp"
 
 
 class TheMaze2 {
 
 public:
-    static TheMaze2& getInstance() {
-        static TheMaze2 maze;
-        return maze;
-    }
 	glm::mat4 proj_matrix_;
     Player player_;
-	std::vector<WallSegment> walls_;
+	std::vector<WallSegment*> walls_;
+    std::vector<Surface*> surfaces_;
 	glm::vec3 light_pos_ws_;
     
 private:
@@ -43,6 +41,10 @@ private:
 	GLint light_pos_cs_uni_;
 	
 public:
+    static TheMaze2& getInstance() {
+        static TheMaze2 maze;
+        return maze;
+    }
 	void render();
     void initGl();
 	void initVbo();
@@ -51,7 +53,9 @@ public:
 	void initAttributes();
     void handleMovement(double delta);
     static void handleKeyInput(int key, int action);
-	
+	void addWall(int xPos, int yPos);
+    void addSurface(int xPos, int yPos);
+    
 private:
 	TheMaze2() {};
     TheMaze2(TheMaze2 const&);

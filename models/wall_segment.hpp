@@ -2,10 +2,7 @@
 #define WALL_SEGMENT_HPP
 
 #include "../common.hpp"
-#include "../model.hpp"
-
-#define WALL_SEGMENT_VERT_COUNT 176
-#define WALL_SEGMENT_ELEM_COUNT 24
+#include "model.hpp"
 
 class WallSegment : public Model {
 
