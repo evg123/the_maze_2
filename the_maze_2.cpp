@@ -3,7 +3,7 @@
 void TheMaze2::initGl() {
     
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 }
 
 void TheMaze2::initVao() {
@@ -14,6 +14,17 @@ void TheMaze2::initVao() {
 }
 
 void TheMaze2::initVbo() {
+    
+    // dont need to do this
+    /*
+    for (int i = 0; i < WALL_SEGMENT_ELEM_COUNT; i++) {
+        WallSegment::elems_[i] += SURFACE_ELEM_COUNT;
+    }
+    
+    for (int i = 0; i < SURFACE_ELEM_COUNT; i++) {
+        Surface::elems_[i] += WALL_SEGMENT_ELEM_COUNT;
+    }
+    */
     
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
@@ -26,7 +37,6 @@ void TheMaze2::initVbo() {
     glBufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STATIC_DRAW);
     
     // load each model's vertex data into the vbo
-    // WallSegment
     glBufferSubData(GL_ARRAY_BUFFER, WALL_SEGMENT_VBO_POS, sizeof(WallSegment::verts_), WallSegment::verts_);
     glBufferSubData(GL_ARRAY_BUFFER, SURFACE_VBO_POS, sizeof(Surface::verts_), Surface::verts_);
     
@@ -42,7 +52,6 @@ void TheMaze2::initVbo() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_size, NULL, GL_STATIC_DRAW);
     
     // load each model's element data into the ebo
-    // WallSegment
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, WALL_SEGMENT_EBO_POS, sizeof(WallSegment::elems_), WallSegment::elems_);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, SURFACE_EBO_POS, sizeof(Surface::elems_), Surface::elems_);
     
@@ -83,7 +92,7 @@ void TheMaze2::initAttributes() {
     norm_model_uni_ = glGetUniformLocation(shader_prog_, "norm_model");
     light_pos_cs_uni_ = glGetUniformLocation(shader_prog_, "light_pos_cs");
     
-    proj_matrix_ = glm::perspective(35.0f, 1920.0f / 1080.0f, 0.1f, 100.0f);
+    proj_matrix_ = glm::perspective(35.0f, 1920.0f / 1080.0f, 0.1f, 200.0f);
     glUniformMatrix4fv(proj_uni_, 1, GL_FALSE, glm::value_ptr(proj_matrix_));
     
 }
@@ -159,19 +168,21 @@ void TheMaze2::handleMovement(double delta) {
     
 }
 
-void TheMaze2::addWall(int xPos, int yPos) {
+void TheMaze2::addWall(int xPos, int yPos, int zPos) {
     
     WallSegment *ws = new WallSegment();
     ws->xPos_ = xPos;
     ws->yPos_ = yPos;
+    ws->zPos_ = zPos;
     walls_.push_back(ws);
 }
 
-void TheMaze2::addSurface(int xPos, int yPos) {
+void TheMaze2::addSurface(int xPos, int yPos, int zPos) {
     
     Surface *sf = new Surface();
     sf->xPos_ = xPos;
     sf->yPos_ = yPos;
+    sf->zPos_ = zPos;
     surfaces_.push_back(sf);
 }
 
@@ -205,12 +216,16 @@ int main() {
     
     maze.light_pos_ws_ = glm::vec3(0.0, 4.0, -6.0);
     
-    maze.addWall(0, 0);
-    maze.addWall(0, 1000);
-    maze.addWall(0, 2000);
-    maze.addWall(2000, -20000);
+    maze.addWall(0, 0, 0);
+    maze.addWall(0, 1000, 0);
+    maze.addWall(0, 2000, 0);
+    maze.addWall(2000, -20000, 0);
     
-    maze.addSurface(-1000, -1000);
+    maze.walls_[3]->scale_ = 3.0f;
+    maze.walls_[3]->zPos_ = 10000;
+    
+    maze.addSurface(0, 0, -5000);
+    maze.addSurface(0, 0, 5000); // need to flip this
     
     //maze.player_.xPos_ = 20000;
     //maze.player_.yPos_ = 20000;
@@ -237,7 +252,7 @@ int main() {
         int error = glGetError();
         if (error != 0) {
             std::cout << "GL Error " << error << std::endl;
-            return -1;
+            //return -1;
         }
     }
     

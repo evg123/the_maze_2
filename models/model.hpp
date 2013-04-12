@@ -11,8 +11,9 @@ public:
     void* ebo_pos_;
 	int ebo_count_;
 	glm::mat4 model_matrix_;
-    int xPos_, yPos_;
+    int xPos_, yPos_, zPos_;
     float facing_;
+    float scale_;
     MOVE_DIR move_dir_;
     int speed_;
     float rot_speed_;
@@ -22,6 +23,7 @@ public:
 protected:
 	float gl_x_pos() { return xPos_ / 1000.0f; };
 	float gl_y_pos() { return yPos_ / 1000.0f; };
+    float gl_z_pos() { return zPos_ / 1000.0f; };
 
 public:
     Model();

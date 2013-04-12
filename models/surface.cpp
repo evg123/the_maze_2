@@ -9,12 +9,13 @@ GLfloat Surface::verts_[] = {
 };
 
 GLushort Surface::elems_[] = {
-	 0,  1,  2, 
-     3,  2,  1, 
+	 2,  1,  0, 
+     1,  2,  3, 
 };
 
 Surface::Surface() 
 	: Model() {
+    scale_ = 100.0f;
 	vbo_pos_ = (void*)(SURFACE_VBO_POS*sizeof(GLfloat));
 	vbo_count_ = SURFACE_VERT_COUNT;
     ebo_pos_ = (void*)(SURFACE_EBO_POS*sizeof(GLushort));

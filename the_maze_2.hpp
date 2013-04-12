@@ -53,8 +53,8 @@ public:
 	void initAttributes();
     void handleMovement(double delta);
     static void handleKeyInput(int key, int action);
-	void addWall(int xPos, int yPos);
-    void addSurface(int xPos, int yPos);
+	void addWall(int xPos, int yPos, int zPos);
+    void addSurface(int xPos, int yPos, int zPos);
     
 private:
 	TheMaze2() {};
