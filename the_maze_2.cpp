@@ -15,14 +15,12 @@ void TheMaze2::initVao() {
 
 void TheMaze2::initVbo() {
     
-    // dont need to do this
-    /*
-    for (int i = 0; i < WALL_SEGMENT_ELEM_COUNT; i++) {
-        WallSegment::elems_[i] += SURFACE_ELEM_COUNT;
+    for (int i = 0; i < WALL_SEGMENT_EBO_COUNT; i++) {
+        WallSegment::elems_[i] += SURFACE_VERT_COUNT;
     }
-    
-    for (int i = 0; i < SURFACE_ELEM_COUNT; i++) {
-        Surface::elems_[i] += WALL_SEGMENT_ELEM_COUNT;
+    /*
+    for (int i = 0; i < SURFACE_EBO_COUNT; i++) {
+        Surface::elems_[i] += WALL_SEGMENT_VERT_COUNT;
     }
     */
     
@@ -177,6 +175,23 @@ void TheMaze2::addWall(int xPos, int yPos, int zPos) {
     walls_.push_back(ws);
 }
 
+void TheMaze2::addWalls(int xPos, int yPos, int zPos, int xOff, int yOff) {
+    if (xOff != 0) {
+        int abs_off = abs(xOff);
+        int delta = xOff / abs_off;
+        for (int i = 0; i != abs_off*delta; i += delta) {
+            addWall(xPos + i*1000, yPos, zPos);
+        }
+    }
+    if (yOff != 0) {
+        int abs_off = abs(yOff);
+        int delta = yOff / abs_off;
+        for (int i = 0; i != abs_off*delta; i += delta) {
+            addWall(xPos, yPos + i*1000, zPos);
+        }
+    }
+}
+
 void TheMaze2::addSurface(int xPos, int yPos, int zPos) {
     
     Surface *sf = new Surface();
@@ -215,6 +230,8 @@ int main() {
     maze.initAttributes();
     
     maze.light_pos_ws_ = glm::vec3(0.0, 4.0, -6.0);
+    maze.addSurface(0, 0, -5000);
+    maze.addSurface(0, 0, 5000); // need to flip this
     
     maze.addWall(0, 0, 0);
     maze.addWall(0, 1000, 0);
@@ -224,13 +241,14 @@ int main() {
     maze.walls_[3]->scale_ = 3.0f;
     maze.walls_[3]->zPos_ = 10000;
     
-    maze.addSurface(0, 0, -5000);
-    maze.addSurface(0, 0, 5000); // need to flip this
+    maze.addWalls(-70000, -70000, 0, 140, 140);
+    maze.addWalls(70000, 70000, 0, -140, -140);
     
-    //maze.player_.xPos_ = 20000;
-    //maze.player_.yPos_ = 20000;
-    maze.player_.facing_ = (3.0f/2.0f)*M_PI;
+    maze.player_.xPos_ = 20000;
+    maze.player_.yPos_ = 20000;
     
+    
+    double fps_timer = 0;
     glfwSetKeyCallback(TheMaze2::handleKeyInput);
     double prev_time = glfwGetTime();
     while (glfwGetWindowParam(GLFW_OPENED)) {
@@ -238,11 +256,18 @@ int main() {
         double time_delta = cur_time - prev_time;
         prev_time = cur_time;
         
+        // print framerate
+        fps_timer += time_delta;
+        if (fps_timer > 1) {
+            int fps = 1 / time_delta;
+            std::cout << fps << "\r" << std::flush;
+            fps_timer = 0;
+        }
         // logic
         maze.handleMovement(time_delta);
         
         // drawing
-        glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+        glClearColor(0.8f, 0.8f, 0.85f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         maze.render();

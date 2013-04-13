@@ -54,6 +54,7 @@ public:
     void handleMovement(double delta);
     static void handleKeyInput(int key, int action);
 	void addWall(int xPos, int yPos, int zPos);
+    void addWalls(int xPos, int yPos, int zPos, int xOff, int yOff);
     void addSurface(int xPos, int yPos, int zPos);
     
 private:
@@ -62,7 +63,6 @@ private:
     void operator=(TheMaze2 const&);
     GLuint shaderFromFile(std::string filename, GLenum type);
     
-	
 };
 
 #endif

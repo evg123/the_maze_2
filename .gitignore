@@ -11,3 +11,9 @@
 *.lai
 *.la
 *.a
+
+# binary
+the_maze_2
+
+# glm lib
+glm/

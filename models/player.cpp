@@ -2,7 +2,7 @@
 
 Player::Player() 
     : Model() {
-	
+	facing_ = (3.0f/2.0f)*M_PI;
 }
 
 void Player::updateModelMatrix() {

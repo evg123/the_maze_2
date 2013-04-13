@@ -7,8 +7,8 @@
 class Surface : public Model {
 
 public:
-	static GLfloat verts_[SURFACE_VERT_COUNT];
-    static GLushort elems_[SURFACE_ELEM_COUNT];
+	static GLfloat verts_[SURFACE_VBO_COUNT];
+    static GLushort elems_[SURFACE_EBO_COUNT];
 	
 private:
 	

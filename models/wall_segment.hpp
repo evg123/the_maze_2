@@ -7,8 +7,8 @@
 class WallSegment : public Model {
 
 public:
-	static GLfloat verts_[WALL_SEGMENT_VERT_COUNT];
-    static GLushort elems_[WALL_SEGMENT_ELEM_COUNT];
+	static GLfloat verts_[WALL_SEGMENT_VBO_COUNT];
+    static GLushort elems_[WALL_SEGMENT_EBO_COUNT];
 	
 private:
 	

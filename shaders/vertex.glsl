@@ -18,7 +18,7 @@ void main() {
 	mat4 ms_to_cs = view * vert_model;
 	
 	v_f_pos_cs = (ms_to_cs * vec4(position_ms, 1.0)).xyz;
-    v_f_norm_cs = (ms_to_cs * vec4(normal_ms, 1.0)).xyz;
+    v_f_norm_cs = (ms_to_cs * vec4(normal_ms, 0.0)).xyz;
     v_f_color_diffuse = in_color;
     
     gl_Position = proj * vec4(v_f_pos_cs, 1.0);
