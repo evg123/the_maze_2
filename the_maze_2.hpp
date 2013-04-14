@@ -56,6 +56,7 @@ public:
 	void addWall(int xPos, int yPos, int zPos);
     void addWalls(int xPos, int yPos, int zPos, int xOff, int yOff);
     void addSurface(int xPos, int yPos, int zPos);
+    void handleMouseInput(double time_delta);
     
 private:
 	TheMaze2() {};

@@ -7,14 +7,13 @@
 class Player : public Model {
 	
 public:
-	void updateModelMatrix();
+	double look_speed_;
     
 private:
-	
 
 public:
     Player();
-	
+	void updateModelMatrix();
     
 private:
 	

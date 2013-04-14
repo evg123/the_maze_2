@@ -207,12 +207,14 @@ int main() {
         return -1;
     }
     
+    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
     if (!glfwOpenWindow(1920, 1080, 8, 8, 8, 0, 24, 0, GLFW_WINDOW)) {
         std::cout << "Error opening GLFW window\n";
         glfwTerminate();
         return -1;
     }
     glfwSetWindowTitle("The Maze 2!");
+    glfwDisable(GLFW_MOUSE_CURSOR);
     
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
@@ -250,6 +252,7 @@ int main() {
     
     double fps_timer = 0;
     glfwSetKeyCallback(TheMaze2::handleKeyInput);
+    //glfwSetMouseButtonCallback(TheMaze2::handleMouseButtonInput);
     double prev_time = glfwGetTime();
     while (glfwGetWindowParam(GLFW_OPENED)) {
         double cur_time = glfwGetTime();
@@ -264,6 +267,7 @@ int main() {
             fps_timer = 0;
         }
         // logic
+        maze.handleMouseInput(time_delta);
         maze.handleMovement(time_delta);
         
         // drawing
@@ -283,6 +287,14 @@ int main() {
     
     glfwTerminate();
     return 0;
+}
+
+void TheMaze2::handleMouseInput(double time_delta) {
+    int xPos, yPos;
+    glfwGetMousePos(&xPos, &yPos);
+    player_.xFacing_ -= player_.look_speed_ * time_delta * float(1920/2 - xPos);
+    player_.yFacing_ += player_.look_speed_ * time_delta * float(1080/2 - yPos);
+    glfwSetMousePos(1920/2, 1080/2);
 }
 
 void TheMaze2::handleKeyInput(int key, int action) {
@@ -307,16 +319,16 @@ void TheMaze2::handleKeyInput(int key, int action) {
             break;
         case 65: // A
             if (action == GLFW_PRESS) {
-                maze.player_.move_dir_ = DIR_LEFT;
+                maze.player_.strafe_dir_ = DIR_LEFT;
             } else if (action == GLFW_RELEASE) {
-                maze.player_.move_dir_ = DIR_NONE;
+                maze.player_.strafe_dir_ = DIR_NONE;
             }
             break;
         case 68: // D
             if (action == GLFW_PRESS) {
-                maze.player_.move_dir_ = DIR_RIGHT;
+                maze.player_.strafe_dir_ = DIR_RIGHT;
             } else if (action == GLFW_RELEASE) {
-                maze.player_.move_dir_ = DIR_NONE;
+                maze.player_.strafe_dir_ = DIR_NONE;
             }
             break;
         case 81: // Q

@@ -12,9 +12,11 @@ public:
 	int ebo_count_;
 	glm::mat4 model_matrix_;
     int xPos_, yPos_, zPos_;
-    float facing_;
+    float xFacing_;
+    float yFacing_;
     float scale_;
     MOVE_DIR move_dir_;
+    MOVE_DIR strafe_dir_;
     int speed_;
     float rot_speed_;
     MOVE_DIR rot_dir_;
