@@ -20,7 +20,7 @@ class TheMaze2 {
 public:
 	glm::mat4 proj_matrix_;
     Player player_;
-	std::vector<WallSegment*> walls_;
+	std::vector<Model*> walls_;
     std::vector<Surface*> surfaces_;
 	glm::vec3 light_pos_ws_;
     

@@ -8,7 +8,6 @@ void TheMaze2::initGl() {
 
 void TheMaze2::initVao() {
     
-    GLuint vert_array;
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);
 }
@@ -138,7 +137,7 @@ void TheMaze2::render() {
     glm::vec3 light_pos_cs = (glm::vec3)(player_.model_matrix_ * glm::vec4(light_pos_ws_, 1.0));
     glUniform3fv(light_pos_cs_uni_, 1, glm::value_ptr(light_pos_cs));
     
-    for (WallSegment *ws : walls_) {
+    for (Model *ws : walls_) {
         ws->updateModelMatrix();
         glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(ws->model_matrix_));
         glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(ws->model_matrix_));
@@ -161,17 +160,21 @@ void TheMaze2::render() {
 
 void TheMaze2::handleMovement(double delta) {
     
-    player_.move(delta);
-    walls_[0]->move(delta);
+    player_.move(delta, walls_);
+    player_.update(delta);
+    
+    // move and update each projectile
+    
+    walls_[0]->move(delta, walls_);
     
 }
 
 void TheMaze2::addWall(int xPos, int yPos, int zPos) {
     
     WallSegment *ws = new WallSegment();
-    ws->xPos_ = xPos;
-    ws->yPos_ = yPos;
-    ws->zPos_ = zPos;
+    ws->pos_.x_ = xPos;
+    ws->pos_.y_ = yPos;
+    ws->pos_.z_ = zPos;
     walls_.push_back(ws);
 }
 
@@ -195,9 +198,9 @@ void TheMaze2::addWalls(int xPos, int yPos, int zPos, int xOff, int yOff) {
 void TheMaze2::addSurface(int xPos, int yPos, int zPos) {
     
     Surface *sf = new Surface();
-    sf->xPos_ = xPos;
-    sf->yPos_ = yPos;
-    sf->zPos_ = zPos;
+    sf->pos_.x_ = xPos;
+    sf->pos_.y_ = yPos;
+    sf->pos_.z_ = zPos;
     surfaces_.push_back(sf);
 }
 
@@ -240,14 +243,14 @@ int main() {
     maze.addWall(0, 2000, 0);
     maze.addWall(2000, -20000, 0);
     
-    maze.walls_[3]->scale_ = 3.0f;
-    maze.walls_[3]->zPos_ = 10000;
+    maze.walls_[3]->setScale(3.0f);
+    maze.walls_[3]->pos_.z_ = 10000;
     
     maze.addWalls(-70000, -70000, 0, 140, 140);
     maze.addWalls(70000, 70000, 0, -140, -140);
     
-    maze.player_.xPos_ = 20000;
-    maze.player_.yPos_ = 20000;
+    maze.player_.pos_.x_ = 20000;
+    maze.player_.pos_.y_ = 20000;
     
     
     double fps_timer = 0;
@@ -269,6 +272,8 @@ int main() {
         // logic
         maze.handleMouseInput(time_delta);
         maze.handleMovement(time_delta);
+        
+        //maze.cleanupObjects();
         
         // drawing
         glClearColor(0.8f, 0.8f, 0.85f, 1.0f);

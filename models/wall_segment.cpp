@@ -64,6 +64,7 @@ WallSegment::WallSegment()
 	vbo_count_ = WALL_SEGMENT_VBO_COUNT;
     ebo_pos_ = (void*)(WALL_SEGMENT_EBO_POS);
 	ebo_count_ = WALL_SEGMENT_EBO_COUNT;
+    pos_.radius_ = 500;
 }
 
 

@@ -17,7 +17,7 @@ GLushort Surface::elems_[] = {
 
 Surface::Surface() 
 	: Model() {
-    scale_ = 1000.0f;
+    setScale(1000.0f);
 	vbo_pos_ = (void*)(SURFACE_VBO_POS*sizeof(GLfloat));
 	vbo_count_ = SURFACE_VBO_COUNT;
     ebo_pos_ = (void*)(SURFACE_EBO_POS*sizeof(GLushort));
