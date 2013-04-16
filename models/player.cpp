@@ -5,7 +5,7 @@ Player::Player()
 	xFacing_ = (3.0f/2.0f)*M_PI;
     yFacing_ = 0;
     look_speed_ = 0.05;
-    pos_.radius_ = 500;
+    pos_.radius_ = 800;
 }
 
 void Player::updateModelMatrix() {

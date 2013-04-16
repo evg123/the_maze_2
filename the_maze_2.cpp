@@ -3,7 +3,7 @@
 void TheMaze2::initGl() {
     
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 }
 
 void TheMaze2::initVao() {
@@ -14,43 +14,51 @@ void TheMaze2::initVao() {
 
 void TheMaze2::initVbo() {
     
-    for (int i = 0; i < WALL_SEGMENT_EBO_COUNT; i++) {
-        WallSegment::elems_[i] += SURFACE_VERT_COUNT;
-    }
     /*
     for (int i = 0; i < SURFACE_EBO_COUNT; i++) {
         Surface::elems_[i] += WALL_SEGMENT_VERT_COUNT;
     }
     */
+    for (int i = 0; i < WALL_SEGMENT_EBO_COUNT; i++) {
+        WallSegment::elems_[i] += SURFACE_VERT_COUNT;
+    }
+    
+    for (int i = 0; i < PROJECTILE_EBO_COUNT; i++) {
+        Projectile::elems_[i] += SURFACE_VERT_COUNT + WALL_SEGMENT_VERT_COUNT;
+    }
     
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     
     // total vbo size is size of all models added together
-    int vbo_size = sizeof(WallSegment::verts_);
-    vbo_size += sizeof(Surface::verts_);
+    int vbo_size = sizeof(Surface::verts_);
+    vbo_size += sizeof(WallSegment::verts_);
+    vbo_size += sizeof(Projectile::verts_);
     
     // allocate space for verticies
     glBufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STATIC_DRAW);
     
     // load each model's vertex data into the vbo
-    glBufferSubData(GL_ARRAY_BUFFER, WALL_SEGMENT_VBO_POS, sizeof(WallSegment::verts_), WallSegment::verts_);
     glBufferSubData(GL_ARRAY_BUFFER, SURFACE_VBO_POS, sizeof(Surface::verts_), Surface::verts_);
+    glBufferSubData(GL_ARRAY_BUFFER, WALL_SEGMENT_VBO_POS, sizeof(WallSegment::verts_), WallSegment::verts_);
+    glBufferSubData(GL_ARRAY_BUFFER, PROJECTILE_VBO_POS, sizeof(Projectile::verts_), Projectile::verts_);
     
     // init element array buffer
     glGenBuffers(1, &ebo_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
     
     // total ebo size is size of all models added together
-    int ebo_size = sizeof(WallSegment::elems_);
-    ebo_size += sizeof(Surface::elems_);
+    int ebo_size = sizeof(Surface::elems_);
+    ebo_size += sizeof(WallSegment::elems_);
+    ebo_size += sizeof(Projectile::elems_);
     
     // allocate space for elements
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_size, NULL, GL_STATIC_DRAW);
     
     // load each model's element data into the ebo
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, WALL_SEGMENT_EBO_POS, sizeof(WallSegment::elems_), WallSegment::elems_);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, SURFACE_EBO_POS, sizeof(Surface::elems_), Surface::elems_);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, WALL_SEGMENT_EBO_POS, sizeof(WallSegment::elems_), WallSegment::elems_);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, PROJECTILE_EBO_POS, sizeof(Projectile::elems_), Projectile::elems_);
     
 }
 
@@ -137,6 +145,14 @@ void TheMaze2::render() {
     glm::vec3 light_pos_cs = (glm::vec3)(player_.model_matrix_ * glm::vec4(light_pos_ws_, 1.0));
     glUniform3fv(light_pos_cs_uni_, 1, glm::value_ptr(light_pos_cs));
     
+    for (Surface *sf : surfaces_) {
+        sf->updateModelMatrix();
+        glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
+        glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
+        
+        glDrawElements(GL_TRIANGLES, sf->ebo_count_, GL_UNSIGNED_SHORT, sf->ebo_pos_);
+    }
+    
     for (Model *ws : walls_) {
         ws->updateModelMatrix();
         glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(ws->model_matrix_));
@@ -145,12 +161,12 @@ void TheMaze2::render() {
         glDrawElements(GL_TRIANGLES, ws->ebo_count_, GL_UNSIGNED_SHORT, ws->ebo_pos_);
     }
     
-    for (Surface *sf : surfaces_) {
-        sf->updateModelMatrix();
-        glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
-        glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
+    for (Projectile *proj : projectiles_) {
+        proj->updateModelMatrix();
+        glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(proj->model_matrix_));
+        glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(proj->model_matrix_));
         
-        glDrawElements(GL_TRIANGLES, sf->ebo_count_, GL_UNSIGNED_SHORT, sf->ebo_pos_);
+        glDrawElements(GL_TRIANGLES, proj->ebo_count_, GL_UNSIGNED_SHORT, proj->ebo_pos_);
     }
     
     glDisableVertexAttribArray(position_attr_);
@@ -163,9 +179,13 @@ void TheMaze2::handleMovement(double delta) {
     player_.move(delta, walls_);
     player_.update(delta);
     
-    // move and update each projectile
-    
     walls_[0]->move(delta, walls_);
+    
+    // move and update each projectile
+    for (Projectile *proj : projectiles_) {
+        proj->move(delta, walls_);
+        proj->update(delta);
+    }
     
 }
 
@@ -202,6 +222,12 @@ void TheMaze2::addSurface(int xPos, int yPos, int zPos) {
     sf->pos_.y_ = yPos;
     sf->pos_.z_ = zPos;
     surfaces_.push_back(sf);
+}
+
+void TheMaze2::addProjectile(int xPos, int yPos, int zPos, float xFacing, float yFacing) {
+    
+    Projectile *proj = new Projectile(xPos, yPos, zPos, xFacing, yFacing);
+    projectiles_.push_back(proj);
 }
 
 int main() {
@@ -252,6 +278,8 @@ int main() {
     maze.player_.pos_.x_ = 20000;
     maze.player_.pos_.y_ = 20000;
     
+    maze.addProjectile(8000, 2000, 0, 0, 0);
+    maze.addProjectile(1000, -3000, 0, 0, 0);
     
     double fps_timer = 0;
     glfwSetKeyCallback(TheMaze2::handleKeyInput);
@@ -384,11 +412,6 @@ void TheMaze2::handleKeyInput(int key, int action) {
             break;
     }
 }
-
-
-
-
-
 
 
 

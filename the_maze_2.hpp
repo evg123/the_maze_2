@@ -11,9 +11,9 @@
 #include "common.hpp"
 #include "models/model.hpp"
 #include "models/player.hpp"
-#include "models/wall_segment.hpp"
 #include "models/surface.hpp"
-
+#include "models/wall_segment.hpp"
+#include "models/projectile.hpp"
 
 class TheMaze2 {
 
@@ -22,6 +22,7 @@ public:
     Player player_;
 	std::vector<Model*> walls_;
     std::vector<Surface*> surfaces_;
+    std::vector<Projectile*> projectiles_;
 	glm::vec3 light_pos_ws_;
     
 private:
@@ -56,6 +57,7 @@ public:
 	void addWall(int xPos, int yPos, int zPos);
     void addWalls(int xPos, int yPos, int zPos, int xOff, int yOff);
     void addSurface(int xPos, int yPos, int zPos);
+    void addProjectile(int xPos, int yPos, int zPos, float xFacing, float yFacing);
     void handleMouseInput(double time_delta);
     
 private:
