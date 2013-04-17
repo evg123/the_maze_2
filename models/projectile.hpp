@@ -16,10 +16,9 @@ private:
 public:
 	Projectile();
     Projectile(int xPos, int yPos, int zPos, float xFacing, float yFacing);
-	void render();
-	
+    
 private:
-	
+	void init();
 	
 };
 

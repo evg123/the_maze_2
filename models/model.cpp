@@ -2,7 +2,7 @@
 
 Model::Model() {
 	
-    xFacing_ = 0;
+    xFacing_ = (3.0f/2.0f)*M_PI;
     yFacing_ = 0;
     move_dir_ = DIR_NONE;
     strafe_dir_ = DIR_NONE;
@@ -13,9 +13,9 @@ Model::Model() {
 }
 
 void Model::updateModelMatrix() {
-	
+    
     model_matrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(gl_x_pos(), gl_z_pos(), gl_y_pos()));
-    model_matrix_ = glm::rotate(model_matrix_, radsToDegrees(xFacing_), glm::vec3(0.0f, 1.0f, 0.0f));
+    model_matrix_ = glm::rotate(model_matrix_, radsToDegrees(-xFacing_+(3.0f/2.0f)*M_PI), glm::vec3(0.0f, 1.0f, 0.0f));
     model_matrix_ = glm::scale(model_matrix_, glm::vec3(getScale(), getScale(), getScale()));
     
 }

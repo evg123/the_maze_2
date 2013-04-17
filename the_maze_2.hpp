@@ -31,6 +31,8 @@ private:
 	GLuint vao_;
 	GLuint shader_prog_;
     
+    int window_width_;
+    int window_height_;
 	GLint position_attr_;
     GLint normal_attr_;
 	GLint text_coord_attr_;
@@ -54,6 +56,8 @@ public:
 	void initAttributes();
     void handleMovement(double delta);
     static void handleKeyInput(int key, int action);
+    static void handleMouseButtonInput(int button, int action);
+    static void handleWindowResize(int width, int height);
 	void addWall(int xPos, int yPos, int zPos);
     void addWalls(int xPos, int yPos, int zPos, int xOff, int yOff);
     void addSurface(int xPos, int yPos, int zPos);
@@ -61,7 +65,7 @@ public:
     void handleMouseInput(double time_delta);
     
 private:
-	TheMaze2() {};
+	TheMaze2();
     TheMaze2(TheMaze2 const&);
     void operator=(TheMaze2 const&);
     GLuint shaderFromFile(std::string filename, GLenum type);

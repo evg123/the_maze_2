@@ -15,7 +15,6 @@ private:
 	
 public:
 	WallSegment();
-	void render();
 	
 private:
 	

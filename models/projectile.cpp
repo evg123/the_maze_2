@@ -33,28 +33,31 @@ GLushort Projectile::elems_[] = {
      6,  7,  8, 
      9, 10, 11, 
     12, 13, 14, 
-    15, 16, 17,     
+    15, 16, 17, 
 };
 
 Projectile::Projectile() 
 	: Model() {
-	vbo_pos_ = (void*)(PROJECTILE_VBO_POS);
-	vbo_count_ = PROJECTILE_VBO_COUNT;
-    ebo_pos_ = (void*)(PROJECTILE_EBO_POS);
-	ebo_count_ = PROJECTILE_EBO_COUNT;
-    pos_.radius_ = 500;
+    init();
 }
 
 Projectile::Projectile(int xPos, int yPos, int zPos, float xFacing, float yFacing) 
 	: Model() {
-	vbo_pos_ = (void*)(PROJECTILE_VBO_POS);
-	vbo_count_ = PROJECTILE_VBO_COUNT;
-    ebo_pos_ = (void*)(PROJECTILE_EBO_POS);
-	ebo_count_ = PROJECTILE_EBO_COUNT;
-    pos_.radius_ = 500;
+    init();
     pos_.x_ = xPos;
     pos_.y_ = yPos;
     pos_.z_ = zPos;
     xFacing_ = xFacing;
     yFacing_ = yFacing;
+    move_dir_ = DIR_FORWARD;
+}
+
+void Projectile::init() {
+    vbo_pos_ = (void*)(PROJECTILE_VBO_POS);
+	vbo_count_ = PROJECTILE_VBO_COUNT;
+    ebo_pos_ = (void*)(PROJECTILE_EBO_POS);
+	ebo_count_ = PROJECTILE_EBO_COUNT;
+    pos_.radius_ = 500;
+    speed_ = 35000;
+    setScale(0.25f);
 }

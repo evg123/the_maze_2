@@ -1,5 +1,10 @@
 #include "the_maze_2.hpp"
 
+TheMaze2::TheMaze2() {
+    window_width_ = DEFAULT_WINDOW_WIDTH;
+    window_height_ = DEFAULT_WINDOW_HEIGHT;
+}
+
 void TheMaze2::initGl() {
     
     glEnable(GL_DEPTH_TEST);
@@ -237,7 +242,8 @@ int main() {
     }
     
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
-    if (!glfwOpenWindow(1920, 1080, 8, 8, 8, 0, 24, 0, GLFW_WINDOW)) {
+    if (!glfwOpenWindow(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, 
+                        8, 8, 8, 0, 24, 0, GLFW_WINDOW)) {
         std::cout << "Error opening GLFW window\n";
         glfwTerminate();
         return -1;
@@ -278,12 +284,10 @@ int main() {
     maze.player_.pos_.x_ = 20000;
     maze.player_.pos_.y_ = 20000;
     
-    maze.addProjectile(8000, 2000, 0, 0, 0);
-    maze.addProjectile(1000, -3000, 0, 0, 0);
-    
     double fps_timer = 0;
     glfwSetKeyCallback(TheMaze2::handleKeyInput);
-    //glfwSetMouseButtonCallback(TheMaze2::handleMouseButtonInput);
+    glfwSetMouseButtonCallback(TheMaze2::handleMouseButtonInput);
+    glfwSetWindowSizeCallback(TheMaze2::handleWindowResize);
     double prev_time = glfwGetTime();
     while (glfwGetWindowParam(GLFW_OPENED)) {
         double cur_time = glfwGetTime();
@@ -325,9 +329,25 @@ int main() {
 void TheMaze2::handleMouseInput(double time_delta) {
     int xPos, yPos;
     glfwGetMousePos(&xPos, &yPos);
-    player_.xFacing_ -= player_.look_speed_ * time_delta * float(1920/2 - xPos);
-    player_.yFacing_ += player_.look_speed_ * time_delta * float(1080/2 - yPos);
-    glfwSetMousePos(1920/2, 1080/2);
+    player_.xFacing_ -= player_.look_speed_ * time_delta * float(window_width_/2 - xPos);
+    player_.yFacing_ += player_.look_speed_ * time_delta * float(window_height_/2 - yPos);
+    glfwSetMousePos(window_width_/2, window_height_/2);
+}
+
+void TheMaze2::handleMouseButtonInput(int button, int action) {
+    
+    TheMaze2 &maze = TheMaze2::getInstance();
+    
+    switch (button) {
+        // move the camera/player
+        case GLFW_MOUSE_BUTTON_LEFT:
+            if (action == GLFW_RELEASE) {
+                maze.addProjectile(maze.player_.pos_.x_, maze.player_.pos_.y_, maze.player_.pos_.z_, 
+                                   maze.player_.xFacing_, maze.player_.yFacing_);
+            }
+        default:
+            break;
+    }
 }
 
 void TheMaze2::handleKeyInput(int key, int action) {
@@ -413,6 +433,12 @@ void TheMaze2::handleKeyInput(int key, int action) {
     }
 }
 
-
+void TheMaze2::handleWindowResize(int width, int height) {
+    
+    TheMaze2 &maze = TheMaze2::getInstance();
+    
+    maze.window_width_ = width;
+    maze.window_height_ = height;
+}
 
 

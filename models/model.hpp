@@ -32,7 +32,6 @@ protected:
 
 public:
     Model();
-	void render();
 	void updateModelMatrix();
     void move(double delta, std::vector<Model*> walls);
     void update(double delta);
