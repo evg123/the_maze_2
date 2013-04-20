@@ -85,6 +85,16 @@ void TheMaze2::initShaders() {
     
 }
 
+void TheMaze2::initTextures() {
+    
+    wall_text_ = gli::createTexture2D("textures/test_texture.dds");
+    //wall_text_ = gli::createTexture2D("textures/ice_wall.dds");
+    //wall_text_ = gli::createTexture2D("textures/stone_wall.dds");
+    //wall_text_ = gli::createTexture2D("textures/rough_stone_wall.dds");
+    
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
 void TheMaze2::initAttributes() {
     
     position_attr_ = glGetAttribLocation(shader_prog_, "position_ms");
@@ -92,6 +102,9 @@ void TheMaze2::initAttributes() {
     
     normal_attr_ = glGetAttribLocation(shader_prog_, "normal_ms");
     glVertexAttribPointer(normal_attr_, 3, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+    
+    text_coord_attr_ = glGetAttribLocation(shader_prog_, "in_text");
+    glVertexAttribPointer(text_coord_attr_, 2, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(6*sizeof(GLfloat)));
     
     color_attr_ = glGetAttribLocation(shader_prog_, "in_color");
     glVertexAttribPointer(color_attr_, 3, GL_FLOAT, GL_FALSE, 11*sizeof(GLfloat), (void*)(8*sizeof(GLfloat)));
@@ -101,6 +114,7 @@ void TheMaze2::initAttributes() {
     vert_model_uni_ = glGetUniformLocation(shader_prog_, "vert_model");
     norm_model_uni_ = glGetUniformLocation(shader_prog_, "norm_model");
     light_pos_cs_uni_ = glGetUniformLocation(shader_prog_, "light_pos_cs");
+    text_samp_uni_ = glGetUniformLocation(shader_prog_, "texture_sampler");
     
     proj_matrix_ = glm::perspective(35.0f, 1920.0f / 1080.0f, 0.1f, 200.0f);
     glUniformMatrix4fv(proj_uni_, 1, GL_FALSE, glm::value_ptr(proj_matrix_));
@@ -140,6 +154,7 @@ void TheMaze2::render() {
     
     glEnableVertexAttribArray(position_attr_);
     glEnableVertexAttribArray(normal_attr_);
+    glEnableVertexAttribArray(text_coord_attr_);
     glEnableVertexAttribArray(color_attr_);
     
     player_.updateModelMatrix();
@@ -154,6 +169,10 @@ void TheMaze2::render() {
         sf->updateModelMatrix();
         glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
         glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(sf->model_matrix_));
+        glUniform1i(text_samp_uni_, 0);
+        
+        glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, wall_text_);
         
         glDrawElements(GL_TRIANGLES, sf->ebo_count_, GL_UNSIGNED_SHORT, sf->ebo_pos_);
     }
@@ -162,6 +181,10 @@ void TheMaze2::render() {
         ws->updateModelMatrix();
         glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(ws->model_matrix_));
         glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(ws->model_matrix_));
+        glUniform1i(text_samp_uni_, 0);
+        
+        glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, wall_text_);
         
         glDrawElements(GL_TRIANGLES, ws->ebo_count_, GL_UNSIGNED_SHORT, ws->ebo_pos_);
     }
@@ -170,12 +193,17 @@ void TheMaze2::render() {
         proj->updateModelMatrix();
         glUniformMatrix4fv(vert_model_uni_, 1, GL_FALSE, glm::value_ptr(proj->model_matrix_));
         glUniformMatrix4fv(norm_model_uni_, 1, GL_FALSE, glm::value_ptr(proj->model_matrix_));
+        glUniform1i(text_samp_uni_, 0);
+        
+        glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, wall_text_);
         
         glDrawElements(GL_TRIANGLES, proj->ebo_count_, GL_UNSIGNED_SHORT, proj->ebo_pos_);
     }
     
     glDisableVertexAttribArray(position_attr_);
     glDisableVertexAttribArray(normal_attr_);
+    glDisableVertexAttribArray(text_coord_attr_);
     glDisableVertexAttribArray(color_attr_);
 }
 
@@ -265,6 +293,7 @@ int main() {
     maze.initVbo();
     maze.initShaders();
     maze.initAttributes();
+    maze.initTextures();
     
     maze.light_pos_ws_ = glm::vec3(0.0, 4.0, -6.0);
     maze.addSurface(0, 0, -5000);

@@ -61,7 +61,7 @@ void Model::move(double delta, std::vector<Model*> walls) {
     for (Model *ws : walls) {
         float dist_scale = pos_.collidesWith(ws->pos_, xOff, yOff, 0);
         if (dist_scale < final_scale) {
-            final_scale = dist_scale;
+            final_scale = dist_scale*0.95f;
         }
     }
     pos_.offset(xOff*final_scale, yOff*final_scale, 0);

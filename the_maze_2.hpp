@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "common.hpp"
+#include "gli/gli.hpp"
+#include "gli/gtx/gl_texture2d.hpp"
 #include "models/model.hpp"
 #include "models/player.hpp"
 #include "models/surface.hpp"
@@ -42,6 +44,9 @@ private:
 	GLint vert_model_uni_;
     GLint norm_model_uni_;
 	GLint light_pos_cs_uni_;
+    GLint text_samp_uni_;
+    
+    GLint wall_text_;
 	
 public:
     static TheMaze2& getInstance() {
@@ -54,6 +59,7 @@ public:
 	void initVao();
 	void initShaders();
 	void initAttributes();
+    void initTextures();
     void handleMovement(double delta);
     static void handleKeyInput(int key, int action);
     static void handleMouseButtonInput(int button, int action);
