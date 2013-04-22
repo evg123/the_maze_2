@@ -22,9 +22,9 @@ void main() {
 	v_f_pos_cs = (ms_to_cs * vec4(position_ms, 1.0)).xyz;
     v_f_norm_cs = (ms_to_cs * vec4(normal_ms, 0.0)).xyz;
     
-    // disable color for now, and just use textures
-    //v_f_color_diffuse = in_color;
-    v_f_color_diffuse = vec3(1.0, 1.0, 1.0);
+    
+    v_f_color_diffuse = in_color;
+    //v_f_color_diffuse = vec3(1.0, 1.0, 1.0);
     
     gl_Position = proj * vec4(v_f_pos_cs, 1.0);
     

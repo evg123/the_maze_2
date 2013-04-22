@@ -25,7 +25,7 @@ public:
 	std::vector<Model*> walls_;
     std::vector<Surface*> surfaces_;
     std::vector<Projectile*> projectiles_;
-	glm::vec3 light_pos_ws_;
+	std::vector<glm::vec3> light_positions_ws_;
     
 private:
 	GLuint vbo_;
@@ -44,6 +44,7 @@ private:
 	GLint vert_model_uni_;
     GLint norm_model_uni_;
 	GLint light_pos_cs_uni_;
+    GLint light_count_uni_;
     GLint text_samp_uni_;
     
     GLint wall_text_;
@@ -68,6 +69,7 @@ public:
     void addWalls(int xPos, int yPos, int zPos, int xOff, int yOff);
     void addSurface(int xPos, int yPos, int zPos);
     void addProjectile(int xPos, int yPos, int zPos, float xFacing, float yFacing);
+    void addLight(float xPos, float yPos, float zPos);
     void handleMouseInput(double time_delta);
     
 private:

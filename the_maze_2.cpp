@@ -8,7 +8,7 @@ TheMaze2::TheMaze2() {
 void TheMaze2::initGl() {
     
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 }
 
 void TheMaze2::initVao() {
@@ -87,12 +87,13 @@ void TheMaze2::initShaders() {
 
 void TheMaze2::initTextures() {
     
-    wall_text_ = gli::createTexture2D("textures/test_texture.dds");
+    //wall_text_ = gli::createTexture2D("textures/test_texture.dds");
     //wall_text_ = gli::createTexture2D("textures/ice_wall.dds");
     //wall_text_ = gli::createTexture2D("textures/stone_wall.dds");
-    //wall_text_ = gli::createTexture2D("textures/rough_stone_wall.dds");
+    wall_text_ = gli::createTexture2D("textures/rough_stone_wall.dds");
     
     glGenerateMipmap(GL_TEXTURE_2D);
+    
 }
 
 void TheMaze2::initAttributes() {
@@ -114,9 +115,10 @@ void TheMaze2::initAttributes() {
     vert_model_uni_ = glGetUniformLocation(shader_prog_, "vert_model");
     norm_model_uni_ = glGetUniformLocation(shader_prog_, "norm_model");
     light_pos_cs_uni_ = glGetUniformLocation(shader_prog_, "light_pos_cs");
+    light_count_uni_ = glGetUniformLocation(shader_prog_, "light_count");
     text_samp_uni_ = glGetUniformLocation(shader_prog_, "texture_sampler");
     
-    proj_matrix_ = glm::perspective(35.0f, 1920.0f / 1080.0f, 0.1f, 200.0f);
+    proj_matrix_ = glm::perspective(35.0f, window_width_ / float(window_height_), 0.1f, 200.0f);
     glUniformMatrix4fv(proj_uni_, 1, GL_FALSE, glm::value_ptr(proj_matrix_));
     
 }
@@ -161,9 +163,16 @@ void TheMaze2::render() {
     //player_.model_matrix_ = glm::inverse(player_.model_matrix_);
     glUniformMatrix4fv(view_uni_, 1, GL_FALSE, glm::value_ptr(player_.model_matrix_));
     
-    // convert light position to camera space
-    glm::vec3 light_pos_cs = (glm::vec3)(player_.model_matrix_ * glm::vec4(light_pos_ws_, 1.0));
-    glUniform3fv(light_pos_cs_uni_, 1, glm::value_ptr(light_pos_cs));
+    int light_count = light_positions_ws_.size();
+    glUniform1i(light_count_uni_, light_count);
+    
+    // convert each light position to camera space
+    glm::vec3 light_pos_cs[16];
+    for (int i = 0; i < light_count; i++) {
+        glm::vec3 light_pos_ws = light_positions_ws_[i];
+        light_pos_cs[i] = (glm::vec3)(player_.model_matrix_ * glm::vec4(light_pos_ws, 1.0));
+    }
+    glUniform3fv(light_pos_cs_uni_, light_count, glm::value_ptr(light_pos_cs[0]));
     
     for (Surface *sf : surfaces_) {
         sf->updateModelMatrix();
@@ -263,6 +272,13 @@ void TheMaze2::addProjectile(int xPos, int yPos, int zPos, float xFacing, float 
     projectiles_.push_back(proj);
 }
 
+void TheMaze2::addLight(float xPos, float yPos, float zPos) {
+    
+    // convert in game dimensions to gl dimensions
+    glm::vec3 light = glm::vec3(xPos, zPos, yPos);
+    light_positions_ws_.push_back(light);
+}
+
 int main() {
     if (!glfwInit()) {
         std::cout << "Error initializing GLFW\n";
@@ -295,7 +311,9 @@ int main() {
     maze.initAttributes();
     maze.initTextures();
     
-    maze.light_pos_ws_ = glm::vec3(0.0, 4.0, -6.0);
+    maze.addLight(25.0, 25.0, 0.0);
+    maze.addLight(-55.0, 0.0, 0.0);
+    
     maze.addSurface(0, 0, -5000);
     maze.addSurface(0, 0, 5000); // need to flip this
     
